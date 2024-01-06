@@ -1,0 +1,162 @@
+using System;
+using System.Numerics;
+using System.Text;
+using System.Collections.Generic;
+
+class ElGamal
+{
+    // Create a random object for generating random numbers
+    static Random random = new Random();
+
+    // Function for modular exponentiation (a^b mod m)
+    static BigInteger ModExp(BigInteger baseValue, BigInteger exponent, BigInteger modulus)
+    {
+        BigInteger result = 1;
+        // Loop to calculate a^b mod m efficiently
+        while (exponent > 0)
+        {
+            if (exponent % 2 == 1)
+            {
+                result = (result * baseValue) % modulus;
+            }
+            baseValue = (baseValue * baseValue) % modulus;
+            exponent /= 2;
+        }
+        return result;
+    }
+
+    // Function to generate ElGamal public and private keys
+    static Tuple<BigInteger, BigInteger> GenerateKey(BigInteger p, BigInteger g)
+    {
+        // Generate a random private key
+        BigInteger private_key = new BigInteger(random.Next(1, (int)(p - 2)));
+        // Calculate the public key as g^private_key mod p
+        BigInteger public_key = ModExp(g, private_key, p);
+
+        return Tuple.Create(private_key, public_key);
+    }
+
+    // Function to encrypt a plaintext message
+    static Tuple<BigInteger, BigInteger> Encrypt(BigInteger plain_text, BigInteger public_key, BigInteger p, BigInteger g)
+    {
+        // Generate a random value k
+        BigInteger k = new BigInteger(random.Next(1, (int)(p - 2)));
+        // Calculate c1 as g^k mod p
+        BigInteger c1 = ModExp(g, k, p);
+        // Calculate c2 as (publicKey^k * plaintext) mod p
+        BigInteger c2 = (ModExp(public_key, k, p) * plain_text) % p;
+
+        return Tuple.Create(c1, c2);
+    }
+
+    // Function to calculate modular inverse
+    static BigInteger ModInverse(BigInteger a, BigInteger m)
+    {
+        BigInteger m0 = m;
+        BigInteger y = 0, x = 1;
+
+        // Extended Euclidean Algorithm to find modular inverse
+        while (a > 1)
+        {
+            BigInteger q = a / m;
+            BigInteger t = m;
+
+            m = a % m;
+            a = t;
+            t = y;
+
+            y = x - q * y;
+            x = t;
+        }
+
+        // Ensure the result is positive
+        if (x < 0)
+            x += m0;
+
+        return x;
+    }
+
+    // Function to decrypt a ciphertext message
+    static BigInteger Decrypt(BigInteger c1, BigInteger c2, BigInteger private_key, BigInteger p)
+    {
+        // Calculate s as c1^private_key mod p
+        BigInteger s = ModExp(c1, private_key, p);
+        // Calculate the modular inverse of s
+        BigInteger s_inv = ModInverse(s, p);
+        // Calculate the decrypted message as (c2 * s_inv) mod p
+        BigInteger decrypted_text = (c2 * s_inv) % p;
+
+        return decrypted_text;
+    }
+
+    // Convert a string to a unique number
+    static BigInteger StringToNumber(string input)
+    {
+        // Convert the string to a byte array using UTF-8 encoding
+        byte[] bytes = Encoding.UTF8.GetBytes(input);
+
+        // Create a BigInteger from the byte array
+        return new BigInteger(bytes);
+    }
+
+    // Convert a unique number to a string
+    static string NumberToString(BigInteger number)
+    {
+        // Convert the BigInteger to a byte array
+        byte[] bytes = number.ToByteArray();
+
+        // Create a string from the byte array using UTF-8 encoding
+        return Encoding.UTF8.GetString(bytes);
+    }
+
+    // Main program
+    static void Main()
+    {
+        // Choose a large prime number (in this case, a large integer for simplicity)
+        BigInteger p = BigInteger.Parse("2147483647");
+        BigInteger plain_text;
+        string originalString;
+
+        // Ask what message has to be encrypted and decrypted
+        do
+        {
+            Console.WriteLine("What message do you want to encrypt/decrypt with ElGamal encryption? (4 characters max.): ");
+            originalString = Console.ReadLine();
+            plain_text = StringToNumber(originalString);
+        } while (plain_text >= p);
+
+        // Display the unique number representation of the original string
+        Console.WriteLine($"Original String: {originalString}\n");
+        Console.WriteLine($"Unique Number: {plain_text}");
+        
+
+        // Choose a primitive root
+        BigInteger g = 2;
+
+
+        // Generate public and private keys
+        Tuple<BigInteger, BigInteger> keys = GenerateKey(p,g);
+        BigInteger private_key = keys.Item1;
+        BigInteger public_key = keys.Item2;
+
+        // ElGamal Encryption
+        Tuple<BigInteger, BigInteger> ciphertext = Encrypt(plain_text, public_key, p, g);
+        BigInteger c1 = ciphertext.Item1;
+        BigInteger c2 = ciphertext.Item2;
+
+        // ElGamal Decryption
+        BigInteger decrypted_text = Decrypt(c1, c2, private_key, p);
+
+        // Convert the unique number back to a string
+        string convertedString = NumberToString(decrypted_text);
+        
+
+        // Display results
+        Console.WriteLine($"Public key: {public_key}");
+        Console.WriteLine($"Private key: {private_key}\n");
+        
+        Console.WriteLine($"Ciphertext (c1, c2): ({c1}, {c2})\n");
+        Console.WriteLine($"Decrypted number: {decrypted_text}");
+        Console.WriteLine($"Decrypted message: {convertedString}");
+    }
+}

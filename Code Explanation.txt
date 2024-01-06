@@ -1,0 +1,56 @@
+Before explaining our program step-by-step, let's explain the limits of our program. In fact, with ElGamal encryption, the value (BigInteger) of our message has to be inferior to p-1. However, as we use BigInteger 
+and also integer (in order to use mathematical functions), we have to reduce our study scale to integers. That's why we will set p=2147483647 (the biggest prime integer). Then, with our convertion methods 
+(StringToNumber and NumberToString), the numbers we can obtain by typing big strings have too much digits to respect the condition of being inferior to p-1. That's why we set a maximum of 4 characters to the 
+initial string so that the value of the message will never be over p-1. 
+
+Now, let's explain step-by-step our ElGamal Encryption and Decryption Code : 
+
+1. Import Necessary Libraries:
+   - The code imports required libraries: System, System.Numerics, System.Text, and System.Collections.Generic.
+
+2. Declare a Random Object:
+   - A static Random object is created to generate random numbers.
+
+3. Modular Exponentiation Function (ModExp):
+   - The function calculates a^b mod m efficiently using the modular exponentiation algorithm.
+
+4. GenerateKey Function:
+   - Generates ElGamal public and private keys.
+   - Randomly selects a private key and calculates the public key as g^privateKey mod p, where g is a primitive root modulo p.
+
+5. Encrypt Function:
+   - Performs ElGamal encryption on a plaintext message.
+   - Generates a random value k.
+   - Calculates c1 as g^k mod p.
+   - Calculates c2 as (publicKey^k * plaintext) mod p.
+
+6. Modular Inverse Function (ModInverse):
+   - Calculates the modular inverse of a number using the extended Euclidean algorithm.
+
+7. Decrypt Function:
+   - Performs ElGamal decryption on a ciphertext.
+   - Calculates s as c1^privateKey mod p.
+   - Calculates the modular inverse of s.
+   - Calculates the decrypted message as (c2 * s_inv) mod p.
+
+8. StringToNumber Function:
+   - Converts a string to a unique number.
+   - Converts the string to a byte array using UTF-8 encoding and creates a BigInteger from the byte array.
+
+9. NumberToString Function:
+   - Converts a unique number to a string.
+   - Converts the BigInteger to a byte array and creates a string from the byte array using UTF-8 encoding.
+
+10. Main Program (Main):
+    - Sets a large prime number p to 2147483647 (the biggest prime integer).
+    - Sets a primitive root g to 2.
+    - Prompts the user to enter a plaintext message, ensuring it is strictly less than p.
+    - Generates public and private keys using the GenerateKey function.
+    - Performs ElGamal encryption using the Encrypt function.
+    - Performs ElGamal decryption using the Decrypt function.
+    - Converts the unique number back to a string using the NumberToString function.
+    - Displays the public key, private key, original message, ciphertext, and decrypted message.
+
+11. Overall:
+    - The code implements the ElGamal encryption and decryption scheme with user input for the initial message.
+    - The string conversion functions allow the encoding and decoding of messages for encryption and decryption.
